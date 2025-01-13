@@ -7,6 +7,7 @@ import (
 	"tube-profile/internal/config"
 	"tube-profile/internal/service"
 
+	"github.com/gorilla/handlers"
 	"github.com/gorilla/mux"
 
 	"tube-profile/internal/api/middleware"
@@ -27,7 +28,13 @@ type Server struct {
 func NewServer(ctx utils.MyContext, config config.Config) *Server {
 	router := mux.NewRouter()
 
-	recoveredRouter := middleware.RecoveryMiddleware(ctx, router)
+	allowedOrigins := handlers.AllowedOrigins([]string{"http://localhost:3000"})
+	allowedMethods := handlers.AllowedMethods([]string{"GET", "POST", "PUT", "DELETE", "OPTIONS"})
+	allowedHeaders := handlers.AllowedHeaders([]string{"Content-Type", "Authorization"})
+
+	corsRouter := handlers.CORS(allowedOrigins, allowedMethods, allowedHeaders)(router)
+
+	recoveredRouter := middleware.RecoveryMiddleware(ctx, corsRouter)
 
 	authenticatedRouter := middleware.UserIdentity(ctx, recoveredRouter)
 
@@ -55,4 +62,10 @@ func (s *Server) HandleAuth(ctx utils.MyContext, service service.ProfileService)
 	s.router.HandleFunc("/api/profile/", handler.CreateProfile(ctx, service)).Methods(http.MethodPost)
 	s.router.HandleFunc("/api/profile/", handler.GetProfile(ctx, service)).Methods(http.MethodGet)
 	s.router.HandleFunc("/api/profile/", handler.UpdateProfile(ctx, service)).Methods(http.MethodPut)
+	s.router.HandleFunc("/api/profile/", func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Access-Control-Allow-Origin", "*") // можно заменить на конкретный домен
+		w.Header().Set("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS")
+		w.Header().Set("Access-Control-Allow-Headers", "Content-Type, Authorization")
+		w.WriteHeader(http.StatusOK)
+	}).Methods(http.MethodOptions)
 }

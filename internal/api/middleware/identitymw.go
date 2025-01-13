@@ -19,6 +19,11 @@ var jwtSecret = []byte("HUdsufs&7fgd9Udkf0fsif8f89wFD9Dfef8D9wE#ie")
 
 func UserIdentity(ctx utils.MyContext, next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if r.Method == http.MethodOptions {
+			w.WriteHeader(http.StatusOK)
+			return
+		}
+
 		if r.URL.Path == "/swagger/" || len(r.URL.Path) >= 9 && r.URL.Path[:9] == "/swagger/" {
 			next.ServeHTTP(w, r)
 			return
