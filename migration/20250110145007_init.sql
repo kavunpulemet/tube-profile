@@ -7,7 +7,7 @@ CREATE TABLE profiles (
     age INT NOT NULL,
     weight FLOAT NOT NULL,
     height FLOAT NOT NULL,
-    goal VARCHAR(30) NOT NULL -- (похудение, поддержание, набор)
+    goal VARCHAR(30) NOT NULL -- (gain, maintain, lose)
 );
 -- +goose StatementEnd
 
